@@ -1,5 +1,12 @@
 package lhc.tste.flink;
 
+import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.api.java.typeutils.TypeExtractor;
+
+import cep.itcase.Event;
+
 /**
  * This class represents the stock event.
  * 
@@ -347,5 +354,9 @@ public class StockEvent {
 			return false;
 		return true;
 	}
+	public static TypeSerializer<StockEvent> createTypeSerializer() {
+		TypeInformation<StockEvent> typeInformation = (TypeInformation<StockEvent>) TypeExtractor.createTypeInfo(StockEvent.class);
 
+		return typeInformation.createSerializer(new ExecutionConfig());
+	}
 }

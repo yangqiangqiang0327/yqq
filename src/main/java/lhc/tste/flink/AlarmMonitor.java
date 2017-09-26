@@ -11,6 +11,7 @@ import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -30,7 +31,7 @@ public class AlarmMonitor {
     		BufferedReader br = new BufferedReader(new FileReader(
     				"src/main/resources/stock.stream"));
     		String line;
-    		while (!(line = br.readLine()).equalsIgnoreCase("end")) {
+    		while ((line = br.readLine()) != null) {
     			// parseLine(line);
     			StringTokenizer st = new StringTokenizer(line, ";");
     			//int timestamp = Integer.parseInt(st.nextToken());
@@ -49,8 +50,8 @@ public class AlarmMonitor {
     	
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // setting Parallelism to 1 
-       // env.setParallelism(1);
-       // env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+      //  env.setParallelism(1);
+      //  env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         // Input stream of alarm events, event creation time is take as timestamp
         // Setting the Watermark to same as creation time of the event.
@@ -63,12 +64,6 @@ public class AlarmMonitor {
     			int symbol= Integer.parseInt(st.nextToken());
     			int price = Integer.parseInt(st.nextToken());
     			int volume = Integer.parseInt(st.nextToken());
-    			
-    			
-    			
-    		
-            	
-            	
                 return new StockEvent(timestamp,symbol, 1,price,volume, "stock");
             }
         });
@@ -92,7 +87,8 @@ public class AlarmMonitor {
 //        		});
         
         //Continuously prints the input events
-        inputEventStream.print();    
+       System.out.println( inputEventStream.print());    
+    
 
         // Wait for 3 seconds and then decide if the event is really a critical issue
         // in the network element, I have used larger pause time between the event
@@ -115,6 +111,8 @@ public class AlarmMonitor {
 						return null;
 					}
         		});
+        		
+        		   env.execute("CEP monitoring job");
 //        		
 //        		DataStream<Either<String, String>> result = CEP.pattern(inputEventStream, alarmPattern).
 //                		select(new PatternTimeoutFunction<StockEvent, String>() {

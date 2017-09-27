@@ -45,7 +45,7 @@ public class AlarmMonitor {
 
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		// setting Parallelism to 1
-		// env.setParallelism(1);
+		 env.setParallelism(1);
 		// env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		// Input stream of alarm events, event creation time is take as
@@ -69,7 +69,7 @@ public class AlarmMonitor {
 		Pattern<StockEvent, ?> pattern = Pattern.<StockEvent> begin("A").where(new SimpleCondition<StockEvent>() {
 			@Override
 			public boolean filter(StockEvent event) {
-				LOG.info("A", event.id, event.price);
+				LOG.debug("A", event.id, event.price);
 				return true;
 			}
 		}).followedByAny("B").where(new SimpleCondition<StockEvent>() {
@@ -79,7 +79,8 @@ public class AlarmMonitor {
 				return true;
 			}
 
-		}).oneOrMore().allowCombinations().followedByAny("C").where(new SimpleCondition<StockEvent>() {
+		}).oneOrMore().allowCombinations().
+				followedByAny("C").where(new SimpleCondition<StockEvent>() {
 			@Override
 			public boolean filter(StockEvent value) throws Exception {
 				//return value.getPrice() < 10;
@@ -95,9 +96,12 @@ public class AlarmMonitor {
 					public String select(Map<String, List<StockEvent>> pattern) throws Exception {
 						StringBuilder builder = new StringBuilder();
 
-						builder.append(pattern.get("A").get(0).getId()).append(",")
-								.append(pattern.get("B").get(0).getId()).append(",")
-								.append(pattern.get("C").get(0).getId()).append("houni youfa");
+						builder.append(pattern.get("A").get(0).getId()).append(",");
+						for (int j = 0; j < pattern.get("B").size(); j++) {
+							builder.append(pattern.get("B").get(j).getId()).append(",");
+						}
+								
+						builder.append(pattern.get("C").get(0).getId()) ;
 
 						return builder.toString();
 					}

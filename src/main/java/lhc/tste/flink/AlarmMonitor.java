@@ -14,6 +14,7 @@ import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -74,23 +75,16 @@ public class AlarmMonitor {
 			public boolean filter(StockEvent event) {
 				return true;
 			}
-		}).followedByAny("B").where(new IterativeCondition<StockEvent>() {
+		}).followedByAny("B").where(new SimpleCondition<StockEvent>() {
 			@Override
 			public boolean filter(StockEvent event) {
-				return event.getVolume() >  ;
+				return event.getVolume() > 10 ;
 			}
 
-			@Override
-			public boolean filter(StockEvent arg0,
-					org.apache.flink.cep.pattern.conditions.IterativeCondition.Context<StockEvent> arg1)
-					throws Exception {
-				
-				return false;
-			}
-		}).oneOrMore().allowCombinations().followedBy("C").where(new SimpleCondition<StockEvent>() {
+		}).oneOrMore().allowCombinations().followedByAny("C").where(new SimpleCondition<StockEvent>() {
 			  @Override
 			  public boolean filter(StockEvent value) throws Exception {
-			    return value.getName().equals("b");
+			    return value.getPrice()< 10;
 			  }
 			});;
 
@@ -102,15 +96,16 @@ public class AlarmMonitor {
 					public String select(Map<String, List<StockEvent>> pattern) throws Exception {
 						StringBuilder builder = new StringBuilder();
 
-						builder.append(pattern.get("start").get(0).getId()).append(",")
-								// .append(pattern.get("middle").get(0).getId()).append(",")
-								.append(pattern.get("end").get(0).getId()).append("houni youfa");
+						builder.append(pattern.get("A").get(0).getId()).append(",")
+								.append(pattern.get("B").get(0).getId()).append(",")
+								.append(pattern.get("C").get(0).getId()).append("houni youfa");
 
 						return builder.toString();
 					}
 				});
 
 		alerts.print();
+		alerts.writeAsText("src/main/resources/resultsABC", FileSystem.WriteMode.OVERWRITE);
 
 		env.execute();
 

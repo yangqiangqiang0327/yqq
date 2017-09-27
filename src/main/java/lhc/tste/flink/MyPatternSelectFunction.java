@@ -39,7 +39,7 @@ class MyPatternSelectFunction<StockEvent, Match> implements PatternSelectFunctio
 		StockEvent endEvent = arg0.get("end").get(0);
 		
 
-		return new Match();
+		return null;// new Match();
 	}
 
 }

@@ -7,6 +7,7 @@ import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -40,6 +41,7 @@ public class CEPITCase {
 			}
 		});
 
+		@SuppressWarnings("serial")
 		DataStream<String> result = CEP.pattern(input, pattern).select(new PatternSelectFunction<Event, String>() {
 
 			@Override
@@ -54,8 +56,8 @@ public class CEPITCase {
 			}
 		});
 
-		result.print();// writeAsText(resultPath,
-						// FileSystem.WriteMode.OVERWRITE);
+		result.print();
+		result.writeAsText("src/main/resources/results.txt", FileSystem.WriteMode.OVERWRITE);
 
 		// expected sequence of matching event ids
 		/// expected = "2,6,8";

@@ -5,9 +5,10 @@ import java.util.Map;
 import lhc.tste.flink.StockEvent;
 import lhc.tste.flink.Match;
 import org.apache.flink.cep.PatternSelectFunction;
-
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 class MyPatternSelectFunction<StockEvent, Match> implements PatternSelectFunction<StockEvent, Match> {
-
+	Logger LOG = LoggerFactory.getLogger(MyPatternSelectFunction.class);
 	// @Override
 	// public String select(Map<String, List<StockEvent>> pattern) throws
 	// Exception {

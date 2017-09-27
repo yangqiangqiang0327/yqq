@@ -10,20 +10,16 @@ import java.util.StringTokenizer;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
-import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
-import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.core.fs.FileSystem;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.time.Time;
-
-import javafx.scene.control.Alert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AlarmMonitor {
-
+	static Logger LOG = LoggerFactory.getLogger(AlarmMonitor.class);
 	private static final long PAUSE = 5000;
 	private static final double TEMP_STD = 20;
 	private static final double TEMP_MEAN = 80;
@@ -73,21 +69,24 @@ public class AlarmMonitor {
 		Pattern<StockEvent, ?> pattern = Pattern.<StockEvent> begin("A").where(new SimpleCondition<StockEvent>() {
 			@Override
 			public boolean filter(StockEvent event) {
+				LOG.info("A", event.id, event.price);
 				return true;
 			}
 		}).followedByAny("B").where(new SimpleCondition<StockEvent>() {
 			@Override
 			public boolean filter(StockEvent event) {
-				return event.getVolume() > 10 ;
+				//return event.getVolume() > 10;
+				return true;
 			}
 
 		}).oneOrMore().allowCombinations().followedByAny("C").where(new SimpleCondition<StockEvent>() {
-			  @Override
-			  public boolean filter(StockEvent value) throws Exception {
-			    return value.getPrice()< 10;
-			  }
-			});;
-
+			@Override
+			public boolean filter(StockEvent value) throws Exception {
+				//return value.getPrice() < 10;
+				return true;
+			}
+		});
+		;
 
 		DataStream<String> alerts = CEP.pattern(inputEventStream, pattern)
 				.select(new PatternSelectFunction<StockEvent, String>() {
@@ -108,7 +107,6 @@ public class AlarmMonitor {
 		alerts.writeAsText("src/main/resources/resultsABC", FileSystem.WriteMode.OVERWRITE);
 
 		env.execute();
-
 
 	}
 }

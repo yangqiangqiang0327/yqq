@@ -44,7 +44,7 @@ public class AlarmMonitor {
 //			events.add(new StockEvent(timestamp, symbol, 1, price, volume, "stock"));
 //		}
 //		br.close();
-
+System.out.println();
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		// setting Parallelism to 1
 		env.setParallelism(1);

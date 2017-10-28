@@ -1,8 +1,5 @@
 package lhc.tste.flink;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +16,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Iterables;
 
 public class AlarmMonitor {
 	static Logger LOG = LoggerFactory.getLogger(AlarmMonitor.class);
@@ -71,7 +66,7 @@ System.out.println();
 		Pattern<StockEvent, ?> pattern = Pattern.<StockEvent> begin("A").where(new SimpleCondition<StockEvent>() {
 			@Override
 			public boolean filter(StockEvent event) {
-			System.out.println("A" + event.id);
+			//System.out.println("A" + event.id);
 				return true;
 			}
 		}).followedByAny("B").where(
@@ -81,7 +76,7 @@ System.out.println();
 
 					@Override
 					public boolean filter(StockEvent bEvent, Context<StockEvent> ctx) throws Exception {
-						System.out.println("B" + bEvent.id);
+					//	System.out.println("B" + bEvent.id);
 
 						StockEvent lastb = null;
 						Iterator<StockEvent> iteratorOverB = ctx.getEventsForPattern("B").iterator();
@@ -110,7 +105,7 @@ System.out.println();
 
 							@Override
 							public boolean filter(StockEvent cEvent, Context<StockEvent> ctx) throws Exception {
-								System.out.println("C" + cEvent.id);
+							//	System.out.println("C" + cEvent.id);
 								StockEvent bEvents=null;
 								Iterator<StockEvent> iteratorOverB = ctx.getEventsForPattern("B").iterator();
 								while (iteratorOverB .hasNext()) {
@@ -122,7 +117,7 @@ System.out.println();
 								return false;
 							}
 						});
-		;
+		
 
 		DataStream<String> alerts = CEP.pattern(parsed, pattern)
 				.select(new PatternSelectFunction<StockEvent, String>() {
@@ -143,7 +138,7 @@ System.out.println();
 				});
 
 		alerts.print();
-		alerts.writeAsText("src/main/resources/resultsABC", FileSystem.WriteMode.OVERWRITE);
+	//	alerts.writeAsText("src/main/resources/resultsABC", FileSystem.WriteMode.OVERWRITE);
 
 		env.execute();
 

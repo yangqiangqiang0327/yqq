@@ -18,7 +18,7 @@ public class CEPITCase {
 
 		DataStream<Event> input = env.fromElements(new Event(1, "barfoo", 1.0), new Event(2, "start", 2.0),
 				new Event(3, "foobar", 3.0), new SubEvent(4, "foo", 4.0, 1.0), new Event(5, "middle", 5.0),
-				new SubEvent(6, "middle", 6.0, 2.0), new SubEvent(7, "bar", 3.0, 3.0), new Event(42, "42", 42.0),
+				new SubEvent(6, "middle", 6.0, 2.0), new SubEvent(7, "end", 3.0, 3.0), new Event(42, "42", 42.0),
 				new Event(8, "end", 1.0));
 
 		Pattern<Event, ?> pattern = Pattern.<Event> begin("start").where(new SimpleCondition<Event>() {
@@ -42,7 +42,7 @@ public class CEPITCase {
 		});
 
 		@SuppressWarnings("serial")
-		DataStream<String> result = CEP.pattern(input, pattern).select(new PatternSelectFunction<Event, String>() {
+		DataStream<String> result = CEP.pattern(input.keyBy(" "), pattern).select(new PatternSelectFunction<Event, String>() {
 
 			@Override
 			public String select(Map<String, List<Event>> pattern) {
@@ -57,7 +57,7 @@ public class CEPITCase {
 		});
 
 		result.print();
-		result.writeAsText("src/main/resources/results.txt", FileSystem.WriteMode.OVERWRITE);
+		result.writeAsText("src/main/resources/result.txt", FileSystem.WriteMode.OVERWRITE);
 
 		// expected sequence of matching event ids
 		/// expected = "2,6,8";

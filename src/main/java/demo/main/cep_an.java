@@ -29,8 +29,10 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.util.serialization.KeyedSerializationSchemaWrapper;
 import demo.conf.ConfigurationManager;
@@ -44,7 +46,9 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.util.Collector;
 import scala.Product1;
+import scala.reflect.internal.Trees;
 import scala.tools.nsc.doc.model.Val;
+import scala.xml.Null;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,19 +61,31 @@ public class cep_an {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         //2 设置输入源kafka
-        /*String topic = ConfigurationManager.getProperty(Constant.KAFKA_TOPICS);
+        String topic = ConfigurationManager.getProperty(Constant.KAFKA_TOPICS);
         Properties prop = new Properties();
         prop.setProperty("bootstrap.servers",ConfigurationManager.getProperty(Constant.KAFKA_METADATA_BROKER_LIST));
         prop.setProperty(Constant.KAFKA_GROUP_ID,ConfigurationManager.getProperty(Constant.KAFKA_GROUP_ID) );
         FlinkKafkaConsumer011<String> myConsumer = new FlinkKafkaConsumer011<String>(topic, new SimpleStringSchema(), prop);//解析方式
-*/
+        DataStreamSource<String> data = env.addSource(myConsumer);
+        /*
         String topic = "test7";
         Properties prop = new Properties();
         prop.setProperty("bootstrap.servers", "192.168.31.128:9092,192.168.31.75:9092,192.168.31.143:9092");
-        prop.setProperty("group.id", "con1");
+        //prop.setProperty("group.id", "con3");
         FlinkKafkaConsumer011<String> myConsumer = new FlinkKafkaConsumer011<String>(topic, new SimpleStringSchema(), prop);
-        DataStream<String> data = env.addSource(myConsumer);
+        DataStream<String> data1 = env.addSource(myConsumer);
         //System.out.println(data);
+        data1.print();
+        env.execute("test");
+
+        String topic1 = "test7";
+        Properties prop1 = new Properties();
+        prop.setProperty("bootstrap.servers", "192.168.31.128:9092,192.168.31.75:9092,192.168.31.143:9092");
+        prop.setProperty("group.id", "c");
+        FlinkKafkaConsumer011<String> myConsumer1 = new FlinkKafkaConsumer011<String>(topic, new SimpleStringSchema(), prop);
+        DataStream<String> data = env.addSource(myConsumer1);
+        //System.out.println(data);
+*/
 
         /**
          * stream数据中的时间，可以设置为事件产生的时间EventTIme 事件进入Flink的时间Ingestion Time
@@ -118,14 +134,20 @@ public class cep_an {
         //获取参数，以JSON的格式得到 将参数字符串转换成json格式的对象 并将参数转换为double类型
         JSONObject taskParamJSON = JSONObject.parseObject(task.getTaskParams());
         //System.out.println(taskParamJSON);
-        //String taskParamString = taskParamJSON.getString(Constant.PARAM);
+        String taskParamString = taskParamJSON.getString(Constant.PARAM);
+        //System.out.println(taskParamString.getClass());
+        Double taskParam = Double.valueOf(taskParamString);
+        //System.out.println(taskParam.getClass());
         //Double taskParam = taskParamJSON.getJSONArray(Constant.PARAM).getDouble(0);
+
+        //System.out.println(taskParam);
         //System.out.println(taskParam);
         //double taskParam = Double.parseDouble(taskParamString);
-        double taskParam = 0.4;
+        //double taskParam = 0.4;
         // '2018-12-11', 3.53, 3.8, 3.8, 3.36, 834336.38, 0.35, 10.14, 3.554, 3.237, 3.124, 807029.24, 489392.42, 303512.67, '300325'
         //对数据进行处理
-        DataStream<Double> p = data.map(new MapFunction<String, Double>() {
+
+       /* DataStream<Double> p = data.map(new MapFunction<String, Double>() {
             @Override
             public Double map(String s) throws Exception {
                 String[] s1 = s.split("，");
@@ -144,7 +166,7 @@ public class cep_an {
                testEvent.setDate(s2);
                return testEvent;
            }
-       });
+       });*/
        DataStream<MyDemo> data2 = data.map(new MapFunction<String, MyDemo>() {
            @Override
            public MyDemo map(String s) throws Exception {
@@ -210,19 +232,30 @@ public class cep_an {
                         },
                         TypeInformation.of(DemoEvent.class));
 
+        DataStream<DemoEvent> map = res.map(x -> {
+            x.toString();
+            return x;
+        });
+        IterativeStream<DemoEvent> iterate = res.iterate();
+        /*while (iterate.has)
+
+
+        DemoEvent event = new DemoEvent(res.iterate().toString());*/
 
         /**
          *flatselect 相较于select 可以返回一个任意数量的结果
          */
         //将结果转为string格式并输出到mysql的 demo_insert
+        String value = String.valueOf(res);
 
-     String selecrstr = res.toString();
+        String selecrstr = res.toString();
         ArrayList<String> de = new ArrayList<>();
         de.add(selecrstr);
-        //select.print();
+        res.print();
 
         InsertDAO sertDAO = DAOFactory.getSertDAO();
         sertDAO.insertDemo(de);
+        System.out.println(de.getClass());
         env.execute(" task");
 
         //确定CEP的模式
